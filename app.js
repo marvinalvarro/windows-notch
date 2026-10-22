@@ -26,6 +26,8 @@ const hm = t => { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(0) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
 
 const ICON = {
+  plus: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  pencil: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16zM14 6l3 3"/></svg>',
   drop: '<svg width="11" height="11" viewBox="0 0 24 24" fill="#60a5fa"><path d="M12 2.5s6 6.2 6 11a6 6 0 0 1-12 0c0-4.8 6-11 6-11z"/></svg>',
   gear: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
   stop: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 14l3-3M10 3h4M12 3v4"/></svg>',
@@ -63,11 +65,11 @@ const pages = [
    <div class="wm"><div class="wl"><div class="wtop"><span class="t30">${(water.ml / 1000).toFixed(1)}</span><span class="sub" style="margin:0">/ 1,5 L</span><div class="tg ${water.on ? 'on' : ''}" id="wt"></div></div>
    <div class="sub" style="margin-top:4px">Hari ini · <b style="color:#60a5fa">${pct}%</b> · Berikutnya ${water.on ? hm(water.next) : 'mati'}</div><div class="bar"><i style="width:${pct}%"></i></div>
    <div class="wbtn"><button class="drink" id="wd">${ICON.drop} Minum</button><button id="ws">${ICON.gear} Tiap ${water.every}m</button></div></div>${right}</div>`; } },
- { k: 'tugas', t: () => '<span style="color:#4ade80">Daftar</span> Tugas', h: () => {
-   const done = todos.filter(x => x.d).length;
-   const act = addMode ? `<input id="ti" placeholder="Tugas baru, Enter">` : `<div style="display:flex;gap:5px;flex-wrap:wrap"><button id="ta">＋ Tambah Tugas</button><button id="te">${editMode ? '✓ Selesai' : '✎ Edit Tugas'}</button></div>`;
-   return `<div class="fx" style="gap:14px"><div style="width:130px;flex:none"><div class="t30">${done}/${todos.length}</div><div class="sub" style="margin:3px 0 8px">Tugas selesai hari ini</div>${act}</div>
-   <div class="tl">${todos.map((x, i) => `<div class="tr ${x.d ? 'd' : ''}" data-i="${i}"><div class="box">✓</div><span>${esc(x.t)}</span>${editMode ? `<b class="del" data-x="${i}">✕</b>` : ''}</div>`).join('') || '<div class="sub">Belum ada tugas</div>'}</div></div>`; } },
+ { k: 'tugas', t: () => 'Daftar <span style="color:#4ade80">Tugas</span>', h: () => {
+   const done = todos.filter(x => x.d).length, now = Date.now();
+   const act = addMode ? `<input id="ti" placeholder="Tugas @18:00, lalu Enter">` : `<div class="tbs"><button class="tb" id="ta">${ICON.plus} Tambah Tugas</button><button class="tb" id="te">${ICON.pencil} ${editMode ? 'Selesai' : 'Edit Tugas'}</button></div>`;
+   return `<div class="fx" style="gap:12px"><div style="width:158px;flex:none"><div class="t30">${done}/${todos.length}</div><div class="sub" style="margin:3px 0 8px">Tugas Selesai Hari Ini</div>${act}</div>
+   <div class="tl">${todos.map((x, i) => `<div class="tr ${x.d ? 'd' : ''}" data-i="${i}"><div class="box">✓</div><div class="tc"><span>${esc(x.t)}</span>${x.due ? `<small class="${!x.d && x.due < now ? 'od' : ''}">${hm(x.due)}</small>` : ''}</div>${editMode ? `<b class="del" data-x="${i}">✕</b>` : ''}</div>`).join('') || '<div class="sub">Belum ada tugas</div>'}</div></div>`; } },
  { k: 'rak', t: () => `Rak ${files.length ? '<button id="fc">Hapus</button>' : ''}`, h: () => files.length
    ? `<div class="shelf">${files.map((f, i) => `<div class="tile" data-i="${i}" title="${esc(f.path)}"><div class="ti">${f.img ? `<img src="file:///${encodeURI(f.path.replace(/\\/g, '/'))}">` : f.dir ? '📁' : '📄'}</div><div class="tn">${esc(f.name)}</div><div class="ts">${f.dir ? 'Folder' : fmtSize(f.size)}</div></div>`).join('')}</div>`
    : `<div class="fx"><div class="empty">📥 Seret file ke notch ini<div class="sub">file langsung tersimpan di sini</div></div></div>` },
@@ -100,7 +102,7 @@ function bind(k) {
   }
   if (k === 'tugas') {
     on('ta', () => { addMode = true; render(); $('ti').focus(); }); on('te', () => { editMode = !editMode; render(); });
-    if ($('ti')) $('ti').onkeydown = e => { if (e.key === 'Enter' && e.target.value.trim()) { todos.push({ t: e.target.value.trim(), d: false }); save('todos', todos); addMode = false; render(); } if (e.key === 'Escape') { addMode = false; render(); } };
+    if ($('ti')) $('ti').onkeydown = e => { if (e.key === 'Enter' && e.target.value.trim()) { todos.push(parseTodo(e.target.value)); save('todos', todos); addMode = false; render(); } if (e.key === 'Escape') { addMode = false; render(); } };
     page.querySelectorAll('.tr').forEach(el => el.onclick = e => { if (e.target.dataset.x !== undefined) todos.splice(+e.target.dataset.x, 1); else if (!editMode) todos[el.dataset.i].d = !todos[el.dataset.i].d; save('todos', todos); render(); });
   }
   if (k === 'rak') { on('fc', () => { files = []; save('shelf', files); render(); }); page.querySelectorAll('.tile').forEach(t => t.onclick = () => shell.openPath(files[t.dataset.i].path)); }
@@ -113,9 +115,14 @@ function syncUI() {
 }
 setInterval(syncUI, 300);
 
+
+function parseTodo(txt) { txt = txt.trim(); const m = txt.match(/^(.*?)\s*@(\d{1,2})[:.](\d{2})$/); if (!m) return { t: txt, d: false };
+  const due = new Date(); due.setHours(+m[2], +m[3], 0, 0); return { t: m[1].trim() || txt, d: false, due: due.getTime() }; }
+function todoCheck() { const t = todos.find(x => x.due && !x.d && !x.notified && x.due <= Date.now()); if (t) { t.notified = true; save('todos', todos); peek('tugas', 5000); } }
+
 // ---------- header ----------
 function header() { const d = new Date(); tm.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()); dt.textContent = `${EN_D[d.getDay()]} ${d.getDate()} ${EN_M[d.getMonth()]} ${d.getFullYear()}`; sr.style.setProperty('--p', d.getSeconds() * 6 + 'deg'); }
-setInterval(() => { header(); if (water.on && Date.now() >= water.next) { water.next = Date.now() + water.every * 60000; save('water2', water); peek('air', 5000); } }, 1000); header();
+setInterval(() => { header(); todoCheck(); if (water.on && Date.now() >= water.next) { water.next = Date.now() + water.every * 60000; save('water2', water); peek('air', 5000); } }, 1000); header();
 
 // ---------- pomodoro ----------
 function setPomo(m) { stopPomo(); pomo.mode = m; pomo.left = m === 'fokus' ? 1500 : 300; render(); }
