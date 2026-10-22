@@ -80,3 +80,30 @@
   .open #sr{position:static}
   #wv{right:31px;transition:right .45s}
   .open #wv{right:16px}
+
+/* pomodoro ala Nusa */
+.pm{display:flex;align-items:center;gap:14px;height:100%}
+.pmr{width:60px;height:60px;margin-left:4px}
+.pmc{flex:1;text-align:center}
+.pmt{display:flex;justify-content:center;align-items:center;gap:5px;font-size:27px;font-weight:700;line-height:1;letter-spacing:-.5px}
+.pmt .ic{font-size:12px;padding:0 2px;color:#cfcfd8}
+.pmb{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:7px}
+.pb{white-space:nowrap;font-size:9.5px;padding:4px 9px;gap:5px}
+.play{width:40px;height:20px;border-radius:10px;padding:0}
+
+/* air ala Nusa */
+.wm{display:flex;gap:12px;height:100%;align-items:center;padding-top:6px}
+.wl{width:196px;flex:none}
+.wtop{display:flex;align-items:center;gap:6px}
+.wtop .tg{margin-left:auto}
+.wbtn{display:flex;gap:6px}
+.drink{background:#172554;color:#bfdbfe}
+.wr{flex:1;display:grid;place-items:center;position:relative;cursor:pointer;height:78px}
+.wgt{position:absolute;inset:0;display:grid;place-content:center;text-align:center;line-height:1.05}
+.wgt b{font-size:21px}.wgt small{font-size:9px;color:#8b8b99}
+.wc{display:flex;align-items:flex-start;gap:6px;padding-top:10px}
+.wcb{display:flex;align-items:flex-end;gap:8px;height:50px;margin-bottom:14px}
+.wcc{position:relative;width:7px;height:50px}
+.wcc i{position:absolute;bottom:0;left:0;right:0;border-radius:3px 3px 0 0;background:linear-gradient(#60a5fa,#1d4ed8)}
+.wcc em{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-style:normal;font-size:9px;color:#8b8b99}
+.wcy{display:flex;flex-direction:column;justify-content:space-between;height:50px;font-size:9px;color:#8b8b99;text-align:left}

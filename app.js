@@ -25,6 +25,16 @@ const curPos = () => { const p = music.pos + (music.playing ? (Date.now() - musi
 const hm = t => { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
 const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(0) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
 
+const ICON = {
+  drop: '<svg width="11" height="11" viewBox="0 0 24 24" fill="#60a5fa"><path d="M12 2.5s6 6.2 6 11a6 6 0 0 1-12 0c0-4.8 6-11 6-11z"/></svg>',
+  gear: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
+  stop: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 14l3-3M10 3h4M12 3v4"/></svg>',
+  cup: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h2a2 2 0 0 1 0 4h-2"/></svg>',
+  target: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>',
+  play: '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M6 4l14 8-14 8z"/></svg>',
+  pause: '<svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>'
+};
+
 // ---------- halaman ----------
 const pages = [
  { k: 'musik', h: () => {
@@ -38,19 +48,21 @@ const pages = [
    else if (lyr.none) body = '<div id="l1" style="color:#ffffff88;font-size:12px">Lirik tersinkron tidak ditemukan</div>';
    else body = '<div id="l0"></div><div id="l1" data-i="-9"></div><div id="l2"></div>';
    return `<div class="fx" style="align-items:flex-start;padding-top:2px"><div style="width:178px;flex:none">${left}</div><div class="lyc" style="height:84px">${body}</div></div>`; } },
- { k: 'pomodoro', t: () => 'Pomodoro', h: () => { const tot = pomo.mode === 'fokus' ? 1500 : 300, r = 26, c = 2 * Math.PI * r;
-   return `<div class="fx" style="gap:14px"><div class="ring" style="width:64px;height:64px"><svg width="64" height="64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="#3a1313" stroke-width="5"/><circle id="pring" cx="32" cy="32" r="${r}" fill="none" stroke="#ef4444" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - pomo.left / tot)}"/></svg><b style="font-size:22px">⏱</b></div>
-   <div style="flex:1;text-align:center"><div><span class="t30" id="ptime">${mm(pomo.left)}</span> <button class="ic" id="pr">↻</button></div><div class="sub" style="margin:2px 0 7px">${pomo.mode === 'fokus' ? 'Waktu fokus' : 'Istirahat singkat'}</div>
-   <div style="display:flex;justify-content:center;align-items:center;gap:6px"><button id="psb">☕ Istirahat Singkat</button><button class="play" id="pp">${pomo.run ? '⏸' : '▶'}</button><button id="pfb">🎯 Waktu Fokus</button></div></div></div>`; } },
+ { k: 'pomodoro', t: () => 'Pomodoro', h: () => { const tot = pomo.mode === 'fokus' ? 1500 : 300, r = 24, c = 2 * Math.PI * r;
+   return `<div class="pm"><div class="ring pmr"><svg width="60" height="60"><circle cx="30" cy="30" r="${r}" fill="none" stroke="#ef4444" stroke-opacity=".25" stroke-width="4"/><circle id="pring" cx="30" cy="30" r="${r}" fill="none" stroke="#ef4444" stroke-width="4" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - pomo.left / tot)}"/></svg><b>${ICON.stop}</b></div>
+   <div class="pmc"><div class="pmt"><span id="ptime">${mm(pomo.left)}</span><button class="ic" id="pr">↻</button></div><div class="sub">${pomo.mode === 'fokus' ? 'Waktu fokus' : 'Istirahat singkat'}</div>
+   <div class="pmb"><button class="pb" id="psb">${ICON.cup} Istirahat Singkat</button><button class="play" id="pp">${pomo.run ? ICON.pause : ICON.play}</button><button class="pb" id="pfb">${ICON.target} Waktu Fokus</button></div></div></div>`; } },
  { k: 'air', t: () => '<span style="color:#60a5fa">Pengingat</span> Minum Air', h: () => {
    const pct = Math.min(100, Math.round(water.ml / 15)), nh = new Date().getHours(), st = Math.min(Math.max(0, nh - 5), 18);
-   const hs = [0,1,2,3,4,5].map(i => st + i), vals = hs.map(h => water.hours[h] || 0), mx = Math.max(300, Math.ceil(Math.max(...vals) / 300) * 300);
-   const right = wView === 0 ? `<div style="display:grid;place-items:center;flex:1">${ring(pct / 100, '#3b82f6', `<span style="font-size:17px;font-weight:700">${pct}<small style="font-size:9px">%</small></span>`, 74)}</div>`
-     : `<div style="display:flex;gap:6px;flex:1;align-items:flex-end;padding-top:14px"><div style="display:flex;gap:4px"><div class="chart" style="width:110px">${vals.map(v => `<i style="height:${Math.max(3, v / mx * 100)}%"></i>`).join('')}</div><div style="font-size:9px;color:#8b8b99;display:flex;flex-direction:column;justify-content:space-between;height:62px;text-align:right"><span>${mx}</span><span>${mx / 2}</span><span>0 ml</span></div></div></div>`;
+   const vals = [0, 1, 2, 3, 4, 5].map(i => water.hours[st + i] || 0), mx = Math.max(600, Math.ceil(Math.max(...vals) / 300) * 300);
+   let right;
+   if (wView === 0) { const r = 27, c = 2 * Math.PI * r, a = c * 0.75;
+     right = `<div class="wr" id="wg" title="Klik untuk melihat grafik"><svg width="74" height="74"><defs><linearGradient id="wgd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><g transform="rotate(135 37 37)"><circle cx="37" cy="37" r="${r}" fill="none" stroke="#182033" stroke-width="5" stroke-linecap="round" stroke-dasharray="${a} ${c}"/><circle cx="37" cy="37" r="${r}" fill="none" stroke="url(#wgd)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${a * pct / 100} ${c}"/></g></svg><div class="wgt"><b>${pct}</b><small>%</small></div></div>`;
+   } else right = `<div class="wr wc" id="wg" title="Klik untuk kembali"><div class="wcb">${vals.map((v, i) => `<div class="wcc"><i style="height:${Math.max(4, v / mx * 100)}%"></i><em>${i % 3 === 0 ? st + i : ''}</em></div>`).join('')}</div><div class="wcy"><span>${mx}</span><span>${mx / 2}</span><span>0 ml</span></div></div>`;
    return `<div class="pg"><i class="${wView === 0 ? 'on' : ''}" data-v="0"></i><i class="${wView === 1 ? 'on' : ''}" data-v="1"></i></div>
-   <div class="fx" style="gap:14px;padding-top:6px"><div style="width:188px;flex:none"><div style="display:flex;align-items:center;gap:8px"><span class="t30">${(water.ml / 1000).toFixed(1)}</span><span class="sub" style="margin:0">/ 1,5 L</span><div class="tg ${water.on ? 'on' : ''}" id="wt" style="margin-left:auto"></div></div>
-   <div class="sub">Hari ini · <b style="color:#60a5fa">${pct}%</b> · Berikutnya ${water.on ? hm(water.next) : 'mati'}</div><div class="bar"><i style="width:${pct}%"></i></div>
-   <div style="display:flex;gap:6px"><button id="wd" style="background:#1d4ed8">💧 Minum</button><button id="ws">⚙ Tiap ${water.every}m</button></div></div>${right}</div>`; } },
+   <div class="wm"><div class="wl"><div class="wtop"><span class="t30">${(water.ml / 1000).toFixed(1)}</span><span class="sub" style="margin:0">/ 1,5 L</span><div class="tg ${water.on ? 'on' : ''}" id="wt"></div></div>
+   <div class="sub" style="margin-top:4px">Hari ini · <b style="color:#60a5fa">${pct}%</b> · Berikutnya ${water.on ? hm(water.next) : 'mati'}</div><div class="bar"><i style="width:${pct}%"></i></div>
+   <div class="wbtn"><button class="drink" id="wd">${ICON.drop} Minum</button><button id="ws">${ICON.gear} Tiap ${water.every}m</button></div></div>${right}</div>`; } },
  { k: 'tugas', t: () => '<span style="color:#4ade80">Daftar</span> Tugas', h: () => {
    const done = todos.filter(x => x.d).length;
    const act = addMode ? `<input id="ti" placeholder="Tugas baru, Enter">` : `<div style="display:flex;gap:5px;flex-wrap:wrap"><button id="ta">＋ Tambah Tugas</button><button id="te">${editMode ? '✓ Selesai' : '✎ Edit Tugas'}</button></div>`;
@@ -83,6 +95,7 @@ function bind(k) {
     on('wd', () => { water.ml += 250; const h = new Date().getHours(); water.hours[h] = (water.hours[h] || 0) + 250; if (water.on) water.next = Date.now() + water.every * 60000; save('water2', water); render(); });
     on('wt', () => { water.on = !water.on; if (water.on) water.next = Date.now() + water.every * 60000; save('water2', water); render(); });
     on('ws', () => { const o = [30, 45, 60, 90, 120]; water.every = o[(o.indexOf(water.every) + 1) % o.length]; water.next = Date.now() + water.every * 60000; save('water2', water); render(); });
+    on('wg', () => { wView = wView ? 0 : 1; render(true); });
     page.querySelectorAll('.pg i').forEach(i => i.onclick = () => { wView = +i.dataset.v; render(true); });
   }
   if (k === 'tugas') {
@@ -109,7 +122,7 @@ function setPomo(m) { stopPomo(); pomo.mode = m; pomo.left = m === 'fokus' ? 150
 function stopPomo() { clearInterval(pomo.int); pomo.run = false; }
 function togglePomo() { if (pomo.run) stopPomo(); else { pomo.run = true; pomo.int = setInterval(() => {
   if (--pomo.left <= 0) { const n = pomo.mode === 'fokus' ? 'istirahat' : 'fokus'; setPomo(n); peek('pomodoro', 4000); return; }
-  if (cur() === 'pomodoro') { const tot = pomo.mode === 'fokus' ? 1500 : 300; $('ptime').textContent = mm(pomo.left); $('pring').style.strokeDashoffset = 2 * Math.PI * 26 * (1 - pomo.left / tot); } }, 1000); } render(); }
+  if (cur() === 'pomodoro') { const tot = pomo.mode === 'fokus' ? 1500 : 300; $('ptime').textContent = mm(pomo.left); $('pring').style.strokeDashoffset = 2 * Math.PI * 24 * (1 - pomo.left / tot); } }, 1000); } render(); }
 
 // ---------- musik / lirik / headphone ----------
 function parseLrc(s) { const o = []; s.split('\n').forEach(l => { const m = l.match(/^\[(\d+):(\d+(?:\.\d+)?)\](.*)$/); if (m) o.push({ t: +m[1] * 60 + +m[2], text: m[3].trim() }); }); return o; }
